@@ -11,10 +11,8 @@ while True:
     c, addr = s.accept()     # Establish connection with client.
     print('Got connection from', addr)
     print("Receiving...")
+    
     l = c.recv(1024)
-
-    print('Nome do arquivo %s', l)
-    algo = input()
     while (l):
         print("Receiving...")
         f.write(l)

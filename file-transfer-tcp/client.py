@@ -19,5 +19,4 @@ while (l):
 f.close()
 print("Done Sending")
 s.shutdown(socket.SHUT_WR)                     # Close the socket when done
-print(s.recv(1024))
 s.close()
