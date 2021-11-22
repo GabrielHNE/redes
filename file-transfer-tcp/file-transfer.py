@@ -86,7 +86,7 @@ def wait_connection():
     host = socket.gethostbyname(socket.gethostname()) # Get local machine name
     port = 3000                 # Reserve a port for your service.
 
-    s.bind((host, port))        # Bind to the port
+    s.bind(('25.8.219.255', port))        # Bind to the port
 
     s.listen(5)                 # Now wait for client connection.
 
@@ -109,13 +109,14 @@ def wait_connection():
     cont = 0
     pck_count = 1
     while (l):
-        printProgressBar(cont, total_packages, "Enviando: ","Completo", length= 50)
+        printProgressBar(cont, total_packages, "Recebendo: ","Completo", length= 50)
         file.write(l)
         l = c.recv(pck_size)
         pck_count = pck_count + 1
         cont=cont+1
     file.close()
     final_time = (time.time() - start_time)
+    
     print(f"file_name: {desc[0]}, file_size: {desc[1]}, pkg_size: {desc[2]}\n")
     msg = 'Thank you for connecting'.encode('ascii')
     c.send(msg)
