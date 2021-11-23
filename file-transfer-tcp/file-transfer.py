@@ -1,6 +1,7 @@
 import socket               # Import socket module
 import time
 import os
+import math
 
 pck_size = 500
 
@@ -79,14 +80,12 @@ def connection():
     else:
         pass
 
-    
-    
 def wait_connection():
     s = socket.socket()         # Create a socket object
     host = socket.gethostbyname(socket.gethostname()) # Get local machine name
     port = 3000                 # Reserve a port for your service.
 
-    s.bind(('25.8.219.255', port))        # Bind to the port
+    s.bind(('192.168.15.33', port))        # Bind to the port
 
     s.listen(5)                 # Now wait for client connection.
 
@@ -104,14 +103,14 @@ def wait_connection():
 
     print("Receiving...")
     start_time = time.time()
-    l = c.recv(pck_size)
-    total_packages = (int)(int(desc[1])/int(desc[2]))
+    l = c.recv(int(desc[2]))
+    total_packages = math.ceil((int)(int(desc[1])/int(desc[2])))
     cont = 0
     pck_count = 1
     while (l):
         printProgressBar(cont, total_packages, "Recebendo: ","Completo", length= 50)
         file.write(l)
-        l = c.recv(pck_size)
+        l = c.recv(int(desc[2]))
         pck_count = pck_count + 1
         cont=cont+1
     file.close()
@@ -122,7 +121,7 @@ def wait_connection():
     c.send(msg)
     c.close()                # Close the connection
     
-    print(f"Tempo de corrido: {final_time}")
+    print(f"Tempo decorrido: {final_time}")
     print(f"Tamanho do arquivo: {pck_count*pck_size} bytes")
     print(f"Quantidade de pacotes ({pck_size}): {pck_count}")
     print(f"Velocidade (bit/s): {(pck_count*pck_size*8)/final_time}")
