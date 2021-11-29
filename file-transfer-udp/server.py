@@ -1,6 +1,6 @@
 import socket
 
-localIP     = "127.0.0.1"
+localIP     = "25.8.205.36"
 localPort   = 20001
 bufferSize  = 1024
 
@@ -18,9 +18,11 @@ print("UDP server up and listening")
 # Listen for incoming datagrams
 while(True):
     bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
-
+    print("aaaaaa")
     message = bytesAddressPair[0]
     address = bytesAddressPair[1]
+
+    print(len(message))
 
     clientMsg = "Message from Client:{}".format(message)
     clientIP  = "Client IP Address:{}".format(address)
