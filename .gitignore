@@ -1,1 +1,4 @@
 *.c
+
+file-transfer-tcp/downloads/*
+file-transfer-udp/downloads/*
