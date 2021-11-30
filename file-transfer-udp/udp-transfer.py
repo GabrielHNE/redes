@@ -69,16 +69,26 @@ def connection():
     flag = True
     sair = False
 
-    l = file.read(pck_size)
     cont = 0
     start_time = time.time()
-    while (l):
-        printProgressBar(cont, total_packages, "Enviando: ","Completo", length= 50)
-        
-        cont = cont + 1
-        s.sendto(l, conn)
-        l = file.read(pck_size)
-            
+    bytes = file.read(pck_size)
+    while(bytes):
+        for i in range(0, 8):
+            if(bytes):
+                printProgressBar(cont, total_packages, "Enviando: ","Completo", length= 50)
+                
+                cont = cont + 1
+                s.sendto(bytes, conn)
+                bytes = file.read(pck_size)
+            else:
+                break
+
+        msg = s.recvfrom(1024)
+
+        if(msg[0].decode() != "ok"):
+            print("Nao deu certo!")
+            exit()
+
     final_time = (time.time() - start_time)
     file.close()
     
@@ -124,16 +134,24 @@ def wait_connection():
     start_time = time.time()
     while(size_rec != file_size):
         
-        printProgressBar(cont_pck, total_packages, "Recebendo: ","Completo", length= 50)
-        bytesAddressPair = s.recvfrom(buffer)
-        cont_pck = cont_pck + 1
+        for i in range(0, 8):
+            if(size_rec != file_size):
+                printProgressBar(cont_pck, total_packages, "Recebendo: ","Completo", length= 50)
+                bytesAddressPair = s.recvfrom(buffer)
+                cont_pck = cont_pck + 1
 
-        bytes = bytesAddressPair[0]
-        assert address == bytesAddressPair[1]
+                bytes = bytesAddressPair[0]
+                assert address == bytesAddressPair[1]
 
-        file.write(bytes)
-        size_rec += len(bytes)
+                file.write(bytes)
+                size_rec += len(bytes)
+            else:
+                break
+
+        s.sendto("ok".encode(), address)
         
+    s.sendto("ok".encode(), address)
+
     final_time = (time.time() - start_time)
     file.close()
     
