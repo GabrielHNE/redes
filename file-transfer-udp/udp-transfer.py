@@ -35,6 +35,22 @@ def openFile(file_path):
 
     return  (file, file_namebase, file_size)
 
+def getMessage(buffer: int, socket: socket.socket, timeout: float):
+    retorno = []
+    socket.settimeout(timeout)
+    try:
+        message = ()
+        while(message == ()):
+            message = socket.recvfrom(buffer)
+
+        retorno[0] = message[0]
+        retorno[1] = message[1]
+
+        return retorno
+    except:
+        print(f'Pacote perdido')
+        return None
+
 def connection():
     s = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     host = input("Forneca o host: ")
@@ -65,29 +81,26 @@ def connection():
 
     print(f"Quantidade total de pacotes a serem enviados: {total_packages}")
 
-    batch = 8
-    flag = True
-    sair = False
-
     cont = 0
+    pck_loss = 0
     start_time = time.time()
     bytes = file.read(pck_size)
     while(bytes):
-        for i in range(0, 8):
-            if(bytes):
-                printProgressBar(cont, total_packages, "Enviando: ","Completo", length= 50)
-                
-                cont = cont + 1
-                s.sendto(bytes, conn)
-                bytes = file.read(pck_size)
-            else:
-                break
+        printProgressBar(cont, total_packages, "Enviando: ","Completo", length= 50)
+        
+        s.sendto(bytes, conn)
+        
+        msg = getMessage(1024, s, 0.1)
 
-        msg = s.recvfrom(1024)
-
-        if(msg[0].decode() != "ok"):
+        if(msg and msg[0].decode() != "ok"):
             print("Nao deu certo!")
-            exit()
+        elif msg and msg[0].decode() == "ok":
+            cont = cont + 1
+            bytes = file.read(pck_size)
+        else:
+            pck_loss = pck_loss + 1
+
+    printProgressBar(cont, total_packages, "Enviando: ","Completo", length= 50)
 
     final_time = (time.time() - start_time)
     file.close()
@@ -95,7 +108,8 @@ def connection():
     #printa log de informações
     print("Tempo decorrido {0:.3f}".format(final_time))
     print(f'Pacotes enviados ({pck_size}): {cont}')
-    print("Velocidade (bits/s): {0:.3f}".format(((cont*pck_size*8)/final_time)/(10**6)))
+    print("Velocidade (Mbits/s): {0:.3f}".format(((cont*pck_size*8)/final_time)/(10**6)))
+    print(f"Quantidade de pacotes perdidos: {pck_loss} ")
     print("Arquivo enviado...")
 
 def wait_connection():
@@ -126,40 +140,34 @@ def wait_connection():
     # Etapa 3
     total_packages = math.ceil((file_size/buffer))
 
-    batch = 8
-
     cont_pck = 0
     size_rec = 0
     # Listen for incoming datagrams
     start_time = time.time()
     while(size_rec != file_size):
+
+        printProgressBar(cont_pck, total_packages, "Recebendo: ","Completo", length= 50)
         
-        for i in range(0, 8):
-            if(size_rec != file_size):
-                printProgressBar(cont_pck, total_packages, "Recebendo: ","Completo", length= 50)
-                bytesAddressPair = s.recvfrom(buffer)
-                cont_pck = cont_pck + 1
+        bytesPair = getMessage(buffer, s, 0.1)
 
-                bytes = bytesAddressPair[0]
-                assert address == bytesAddressPair[1]
+        cont_pck = cont_pck + 1
 
-                file.write(bytes)
-                size_rec += len(bytes)
-            else:
-                break
+        bytes = bytesPair[0]
 
+        file.write(bytes)
+        size_rec += len(bytes)
+            
         s.sendto("ok".encode(), address)
-        
-    s.sendto("ok".encode(), address)
 
+    printProgressBar(cont_pck, total_packages, "Recebendo: ","Completo", length= 50)
     final_time = (time.time() - start_time)
     file.close()
     
     print("Tempo decorrido: {0:.3f}".format(final_time))
+    print(f"Pacotes recebidos ({buffer}): {cont_pck}")
+    print("Velocidade (Mbits/s): {0:.3f}".format(((cont_pck*buffer*8)/final_time)/(10**6)))
     print(f"Tamanho do arquivo recebido: {size_rec} bytes")
-    print(f"Quantidade de pacotes: {cont_pck} ({buffer})")
-    print("Velocidade (bit/s): {0:.3f}".format(((cont_pck*buffer*8)/final_time)/(10**6)))
-    print("Arquivo recebido")
+    print("Arquivo recebido!")
     
 while True:
     choice = input("Deseja se conectar ou aguardar uma conexão? conectar/aguardar: ")
