@@ -36,18 +36,12 @@ def openFile(file_path):
     return  (file, file_namebase, file_size)
 
 def getMessage(buffer: int, socket: socket.socket, timeout: float):
-    retorno = []
     socket.settimeout(timeout)
     try:
-        message = ()
-        while(message == ()):
-            message = socket.recvfrom(buffer)
+        ok, conn = socket.recvfrom(buffer)
 
-        retorno[0] = message[0]
-        retorno[1] = message[1]
-
-        return retorno
-    except:
+        return ok
+    except timeout:
         print(f'Pacote perdido')
         return None
 
@@ -90,11 +84,11 @@ def connection():
         
         s.sendto(bytes, conn)
         
-        msg = getMessage(1024, s, 0.1)
+        ack = getMessage(1024, s, 0.1)
 
-        if(msg and msg[0].decode() != "ok"):
+        if(ack and ack.decode() != "ok"):
             print("Nao deu certo!")
-        elif msg and msg[0].decode() == "ok":
+        elif ack and ack.decode() == "ok":
             cont = cont + 1
             bytes = file.read(pck_size)
         else:
@@ -144,11 +138,11 @@ def wait_connection():
     size_rec = 0
     # Listen for incoming datagrams
     start_time = time.time()
-    while(size_rec != file_size):
+    while(size_rec < file_size):
 
         printProgressBar(cont_pck, total_packages, "Recebendo: ","Completo", length= 50)
         
-        bytesPair = getMessage(buffer, s, 0.1)
+        bytesPair = s.recvfrom(buffer)
 
         cont_pck = cont_pck + 1
 
